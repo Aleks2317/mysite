@@ -3,6 +3,15 @@ from django.utils import timezone
 from django.contrib.auth.models import User
 
 
+class PublishedManager(models.Manager):
+    '''Метод get_queryset() менеджера возвращает набор запросов QuerySet, который будет исполнен.
+    Мы переопределили этот метод, чтобы сформировать конкретно-прикладной набор запросов QuerySet,
+    фильтрующий посты по их статусу и возвращающий поочередный набор запросов QuerySet,
+    содержащий посты только со статусом PUBLISHED.'''
+    def get_queryset(self):
+        return super().get_queryset().filter(status=Post.Status.PUBLISHED)
+
+
 class Post(models.Model):
     class Status(models.TextChoices):  # смотри 5,2
         DRAFT = 'DF', 'Draft'
@@ -18,6 +27,9 @@ class Post(models.Model):
     created = models.DateTimeField(auto_now_add=True)  # поле даты создания
     updated = models.DateTimeField(auto_now=True)  # поле даты изменения
     status = models.CharField(max_length=2, choices=Status.choices, default=Status.DRAFT)
+
+    objects = models.Manager()  # менеджер, применяемый по умолчанию
+    published = PublishedManager()  # конкретно-прикладной менеджер
 
     class Meta:
         ordering = ['-publish']
